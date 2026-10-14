@@ -1,0 +1,23 @@
+name: build-spoof-dylib
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main ]
+jobs:
+  build:
+    runs-on: macos-14
+    steps:
+      - uses: actions/checkout@v4
+      - name: Compilar
+        run: |
+          SDK=$(xcrun --sdk iphoneos --show-sdk-path)
+          clang -dynamiclib -fobjc-arc -O2 -o Spoof.dylib Spoof.m \
+            -framework Foundation -framework UIKit -framework AdSupport \
+            -weak_framework AppTrackingTransparency -weak_framework CoreTelephony \
+            -isysroot "$SDK" -arch arm64 -miphoneos-version-min=13.0
+          file Spoof.dylib
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Spoof.dylib
+          path: Spoof.dylib
+          if-no-files-found: error
